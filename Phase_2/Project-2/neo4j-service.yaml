@@ -1,0 +1,19 @@
+#1226906709 - Om Patel
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j-service
+spec:
+  selector:
+    app: my-neo4j-release
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    name: neo4j-http
+    port: 7474
+    targetPort: 7474
+  - protocol: TCP
+    name: neo4j-bolt
+    port: 7687
+    targetPort: 7687
