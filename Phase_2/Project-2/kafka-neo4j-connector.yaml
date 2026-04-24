@@ -1,0 +1,97 @@
+#1226906709 - Om Patel
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: neo4j-sink-config
+data:
+  sink.neo4j.json: |
+    {
+      "name": "Neo4jSinkConnectorJSONString",
+      "config": {
+        "topics": "nyc_taxicab_data",
+        "connector.class": "streams.kafka.connect.sink.Neo4jSinkConnector",
+        "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "key.converter.schemas.enable": "false",
+        "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+        "value.converter.schemas.enable": "false",
+        "errors.retry.timeout": "-1",
+        "errors.retry.delay.max.ms": "1000",
+        "errors.tolerance": "all",
+        "errors.log.enable": "true",
+        "errors.log.include.messages": "true",
+        "neo4j.server.uri": "bolt://neo4j-service:7687",
+        "neo4j.authentication.basic.username": "neo4j",
+        "neo4j.authentication.basic.password": "processingpipeline",
+        "neo4j.topic.cypher.nyc_taxicab_data": "MERGE (p:Location {name: toInteger(event.PULocationID)}) MERGE (d:Location {name: toInteger(event.DOLocationID)}) CREATE (p)-[:TRIP {distance: toFloat(event.trip_distance), fare: toFloat(event.fare_amount)}]->(d)"
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-neo4j-connector
+  labels:
+    app: kafka-neo4j-connector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka-neo4j-connector
+  template:
+    metadata:
+      labels:
+        app: kafka-neo4j-connector
+    spec:
+      containers:
+        - name: kafka-neo4j-connector
+          image: veedata/kafka-neo4j-connect:latest2
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8083
+          env:
+            - name: KAFKA_HEAP_OPTS
+              value: "-Xms256M -Xmx512M"
+            - name: CONNECT_BOOTSTRAP_SERVERS
+              value: "kafka-service:29092"
+            - name: CONNECT_REST_PORT
+              value: "8083"
+            - name: CONNECT_GROUP_ID
+              value: "kafka-connect"
+            - name: CONNECT_CONFIG_STORAGE_TOPIC
+              value: "_connect-configs"
+            - name: CONNECT_OFFSET_STORAGE_TOPIC
+              value: "_connect-offsets"
+            - name: CONNECT_STATUS_STORAGE_TOPIC
+              value: "_connect-status"
+            - name: CONNECT_KEY_CONVERTER
+              value: "org.apache.kafka.connect.storage.StringConverter"
+            - name: CONNECT_VALUE_CONVERTER
+              value: "org.apache.kafka.connect.json.JsonConverter"
+            - name: CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE
+              value: "false"
+            - name: CONNECT_REST_ADVERTISED_HOST_NAME
+              value: "kafka-neo4j-connector"
+            - name: CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_STATUS_STORAGE_REPLICATION_FACTOR
+              value: "1"
+            - name: CONNECT_PLUGIN_PATH
+              value: "/usr/share/java,/usr/share/confluent-hub-components,/data/connect-jars"
+          volumeMounts:
+            - name: sink-config
+              mountPath: /home/appuser/sink.neo4j.json
+              subPath: sink.neo4j.json
+          resources:
+            limits:
+              memory: "2500Mi"
+              cpu: "1000m"
+            requests:
+              memory: "1000Mi"
+              cpu: "500m"
+      volumes:
+        - name: sink-config
+          configMap:
+            name: neo4j-sink-config
