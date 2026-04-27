@@ -1,0 +1,6 @@
+*.parquet
+__pycache__/
+*.pyc
+.DS_Store
+*.zip
+yellow_tripdata_2022-03.parquet
