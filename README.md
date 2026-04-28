@@ -8,7 +8,7 @@ This was a two-phase project for CSE 511 (Data Processing at Scale) at Arizona S
 
 ## What's the idea?
 
-New York City taxi trips are basically a graph problem. Every neighborhood is a node, every trip is an edge, and the data tells you a lot about how the city actually moves. This project takes the March 2022 NYC Yellow Taxi dataset, filters it down to Bronx trips, and turns it into a property graph in Neo4j — then runs PageRank and BFS on top of it.
+New York City taxi trips are basically a graph problem. Every neighborhood is a node, every trip is an edge, and the data tells you a lot about how the city actually moves. This project takes the March 2022 NYC Yellow Taxi dataset, filters it down to Bronx trips, and turns it into a property graph in Neo4j and then runs PageRank and BFS on top of it.
 
 The interesting part is the infrastructure evolution. Phase 1 is simple and self-contained (one Docker image, everything baked in). Phase 2 tears that apart and rebuilds it as a live streaming pipeline on Kubernetes, where trip data flows from a Kafka topic into Neo4j in real time.
 
@@ -27,7 +27,7 @@ The interesting part is the infrastructure evolution. Phase 1 is simple and self
 
 ---
 
-## Phase 1 — Dockerized Neo4j
+## Phase 1: Dockerized Neo4j
 
 The goal here was simple: get the data into Neo4j inside a reproducible container, no manual steps.
 
@@ -49,9 +49,9 @@ Filtering to Bronx zones gives us 42 nodes and 1,530 relationships from the Marc
 
 **Algorithms implemented in `interface.py`**
 
-*PageRank* — ranks each taxi zone by importance based on how many trips flow into it, weighted by distance or fare. Returns the highest and lowest ranked zones.
+*PageRank:* ranks each taxi zone by importance based on how many trips flow into it, weighted by distance or fare. Returns the highest and lowest ranked zones.
 
-*BFS* — finds the shortest path between a start zone and one or more target zones through the trip graph.
+*BFS:* finds the shortest path between a start zone and one or more target zones through the trip graph.
 
 Both use the Neo4j GDS library directly via Cypher.
 
@@ -67,7 +67,7 @@ python3 tester.py
 
 ---
 
-## Phase 2 — Kubernetes Streaming Pipeline
+## Phase 2: Kubernetes Streaming Pipeline
 
 Phase 2 replaces the static Docker build with a live pipeline. Instead of loading data at build time, a Python producer streams trip records to Kafka, and a connector picks them up and writes them into Neo4j in real time.
 
@@ -91,11 +91,11 @@ Neo4j Kafka Sink Connector
 
 **Components**
 
-- **Zookeeper** — manages Kafka broker coordination (`zookeeper-setup.yaml`)
-- **Kafka** — message broker with two listener ports: 9092 for external access, 29092 for internal pod communication (`kafka-setup.yaml`)
-- **Neo4j** — deployed via the official Helm chart with GDS plugin enabled (`neo4j-values.yaml`, `neo4j-service.yaml`)
-- **Kafka-Neo4j Connector** — consumes messages from the Kafka topic and writes them to Neo4j using a Cypher template (`kafka-neo4j-connector.yaml`)
-- **data_producer.py** — reads the parquet file, filters to Bronx trips, and streams 1,530 JSON records to Kafka
+- **Zookeeper:** manages Kafka broker coordination (`zookeeper-setup.yaml`)
+- **Kafka:** message broker with two listener ports: 9092 for external access, 29092 for internal pod communication (`kafka-setup.yaml`)
+- **Neo4j:** deployed via the official Helm chart with GDS plugin enabled (`neo4j-values.yaml`, `neo4j-service.yaml`)
+- **Kafka-Neo4j Connector:** consumes messages from the Kafka topic and writes them to Neo4j using a Cypher template (`kafka-neo4j-connector.yaml`)
+- **data_producer.py:** reads the parquet file, filters to Bronx trips, and streams 1,530 JSON records to Kafka
 
 **Running it**
 
@@ -139,7 +139,7 @@ python3 tester.py
 
 [NYC TLC Yellow Taxi Trip Data — March 2022](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
 
-Filtered to Bronx pickup and dropoff zones only. The parquet file is not included in this repo (53MB) — download it separately if you want to run it yourself.
+Filtered to Bronx pickup and dropoff zones only. The parquet file is not included in this repo (53MB); download it separately if you want to run it yourself.
 
 ---
 
