@@ -1,6 +1,6 @@
 # NeoFlow NYC 🚕 → 🗃️ → 📊
 
-A graph data pipeline built around NYC Yellow Taxi trip data — starting with a Dockerized Neo4j setup and evolving into a full Kubernetes streaming architecture with Kafka.
+A graph data pipeline built around NYC Yellow Taxi trip data: Starting with a Dockerized Neo4j setup and evolving into a full Kubernetes streaming architecture with Kafka.
 
 This was a two-phase project for CSE 511 (Data Processing at Scale) at Arizona State University. Phase 1 gets the data into a graph database. Phase 2 makes it stream in real time.
 
