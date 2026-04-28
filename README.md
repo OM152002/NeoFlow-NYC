@@ -61,8 +61,7 @@ Both use the Neo4j GDS library directly via Cypher.
 docker build -t neoflow-phase1 .
 docker run -d -p 7474:7474 -p 7687:7687 --name neoflow neoflow-phase1
 
-# Wait ~2 minutes for Neo4j to start, then:
-python3 tester.py
+# Wait ~2 minutes for Neo4j to start, then run terster.py:
 ```
 
 ---
