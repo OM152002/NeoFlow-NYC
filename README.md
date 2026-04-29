@@ -29,7 +29,7 @@ The interesting part is the infrastructure evolution. Phase 1 is simple and self
 
 ---
 
-## Phase 1 — Dockerized Neo4j
+## Phase 1: Dockerized Neo4j
 
 The goal here was simple: get the data into Neo4j inside a reproducible container, no manual steps.
 
@@ -61,13 +61,12 @@ Filtering to Bronx zones gives us 42 nodes and 1,530 relationships from the Marc
 docker build -t neoflow-phase1 .
 docker run -d -p 7474:7474 -p 7687:7687 --name neoflow neoflow-phase1
 
-# Wait ~2 minutes for Neo4j to start, then:
-python3 tester.py
+# Wait ~2 minutes for Neo4j to start, and then run python3 tester.py:
 ```
 
 ---
 
-## Phase 2 — Kubernetes Streaming Pipeline
+## Phase 2: Kubernetes Streaming Pipeline
 
 Phase 2 replaces the static Docker build with a live pipeline. Instead of loading data at build time, a Python producer streams trip records to Kafka, and a connector picks them up and writes them into Neo4j in real time.
 
@@ -91,11 +90,11 @@ Neo4j Kafka Sink Connector
 
 **Components**
 
-- **Zookeeper** — manages Kafka broker coordination (`zookeeper-setup.yaml`)
-- **Kafka** — message broker with two listener ports: 9092 for external access, 29092 for internal pod communication (`kafka-setup.yaml`)
-- **Neo4j** — deployed via the official Helm chart with GDS plugin enabled (`neo4j-values.yaml`, `neo4j-service.yaml`)
-- **Kafka-Neo4j Connector** — consumes messages from the Kafka topic and writes them to Neo4j using a Cypher template (`kafka-neo4j-connector.yaml`)
-- **data_producer.py** — reads the parquet file, filters to Bronx trips, and streams 1,530 JSON records to Kafka
+- **Zookeeper:** manages Kafka broker coordination (`zookeeper-setup.yaml`)
+- **Kafka:** message broker with two listener ports: 9092 for external access, 29092 for internal pod communication (`kafka-setup.yaml`)
+- **Neo4j:** deployed via the official Helm chart with GDS plugin enabled (`neo4j-values.yaml`, `neo4j-service.yaml`)
+- **Kafka-Neo4j Connector:** consumes messages from the Kafka topic and writes them to Neo4j using a Cypher template (`kafka-neo4j-connector.yaml`)
+- **data_producer.py:** reads the parquet file, filters to Bronx trips, and streams 1,530 JSON records to Kafka
 
 **Running it**
 
@@ -119,7 +118,7 @@ python3 tester.py
 
 ---
 
-## Phase 3 — REST API + Interactive Dashboard
+## Phase 3: REST API + Interactive Dashboard
 
 Phase 3 exposes the graph analytics as a REST API and wraps it in an interactive map dashboard built with Streamlit and Folium.
 
@@ -152,22 +151,22 @@ Streamlit Dashboard
 
 **Dashboard Features**
 
-- **PageRank map** — each Bronx zone shown as a circle. Bigger and warmer = higher PageRank. Hover for zone name and score.
-- **BFS path finder** — pick a start and target zone(s), get the shortest path drawn on the map with numbered stops and a dashed route line.
+- **PageRank map:** each Bronx zone shown as a circle. Bigger and warmer = higher PageRank. Hover for zone name and score.
+- **BFS path finder:** pick a start and target zone(s), get the shortest path drawn on the map with numbered stops and a dashed route line.
 - Results persist across widget interactions via Streamlit session state.
 
 **Running it**
 
 ```bash
-# Terminal 1 — Neo4j port-forward (Kubernetes must be running)
+#Neo4j port-forward (Kubernetes must be running)
 kubectl port-forward svc/neo4j-service 7474:7474 7687:7687
 
-# Terminal 2 — FastAPI
+#FastAPI
 cd Phase_3/APIs
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 
-# Terminal 3 — Streamlit
+#Streamlit
 cd Phase_3/dashboard
 pip install -r requirements.txt
 streamlit run app.py
@@ -183,7 +182,7 @@ Open `http://localhost:8501` in your browser.
 |---|---|
 | Phase 1 — Data loading + algorithms | 60/60 (tester) |
 | Phase 2 — Full Kubernetes pipeline | 100/100 |
-| Phase 3 — API + Dashboard | ✅ Fully functional |
+| Phase 3 — API + Dashboard | 100% Fully functional |
 
 ---
 
